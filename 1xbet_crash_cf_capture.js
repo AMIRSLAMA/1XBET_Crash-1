@@ -135,6 +135,12 @@ async function getWsEndpoint() {
             seenCrashRounds.add(roundId);
 
             const multiplier = crash.f;
+            // Notify the separate desktop monitor only after the game sends its actual OnCrash event.
+            fetch("http://127.0.0.1:3035/event", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ kind: "crash", roundId, multiplier, receivedAt: new Date().toISOString() }),
+            }).catch((error) => console.warn("Monitor notification failed:", error.message));
             const date = new Date(crash.ts);
             if (Number.isNaN(date.getTime())) {
                 console.warn("Skipping OnCrash message with an invalid timestamp.");
