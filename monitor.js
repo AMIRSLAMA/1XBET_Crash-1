@@ -26,8 +26,8 @@ body.danger .circle svg{fill:#ff3447}body.danger .label{color:#ff3447;animation:
 <script>
 let audio=null,osc=null,gain=null,beeping=false;
 function siren(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();if(audio.state==="suspended")audio.resume();if(beeping)return;beeping=true;osc=audio.createOscillator();gain=audio.createGain();osc.type="sawtooth";osc.frequency.value=880;gain.gain.value=.07;osc.connect(gain);gain.connect(audio.destination);osc.start();let high=true;window._siren=setInterval(()=>{if(!osc)return;high=!high;osc.frequency.setTargetAtTime(high?1050:620,audio.currentTime,.06)},350)}catch(e){}}
-function alarm(data){document.body.classList.add("danger");document.getElementById("label").textContent="اسحب";document.getElementById("status").textContent="تم رصد انتهاء الجولة فعليًا · "+(data.roundId||"");siren()}
-function clearAlarm(){document.body.classList.remove("danger");document.getElementById("label").textContent="مراقبة";document.getElementById("status").textContent="في انتظار الجولة التالية";if(window._siren)clearInterval(window._siren);if(osc){try{osc.stop()}catch(e){}osc=null}beeping=false}
+function alarm(data){clearAlarm();document.body.classList.add("danger");document.getElementById("label").textContent="تم الرصد";document.getElementById("status").textContent="وصل حدث انتهاء الجولة · "+(data.roundId||"");siren();window._alarmTimeout=setTimeout(clearAlarm,1800)}
+function clearAlarm(){if(window._alarmTimeout){clearTimeout(window._alarmTimeout);window._alarmTimeout=null}document.body.classList.remove("danger");document.getElementById("label").textContent="مراقبة";document.getElementById("status").textContent="في انتظار الجولة التالية";if(window._siren)clearInterval(window._siren);if(osc){try{osc.stop()}catch(e){}osc=null}beeping=false}
 document.body.addEventListener("click",()=>{if(audio&&audio.state==="suspended")audio.resume()});
 const es=new EventSource("/events");es.onmessage=e=>{const d=JSON.parse(e.data);if(d.kind==="crash")alarm(d);else if(d.kind==="reset")clearAlarm()};
 </script></body></html>`;
@@ -37,7 +37,6 @@ const server = http.createServer((req,res)=>{
   if(req.method==="GET" && req.url==="/events"){
     res.writeHead(200,{"content-type":"text/event-stream","cache-control":"no-cache","connection":"keep-alive"});
     res.write("retry: 1500\n\n");clients.add(res);
-    if(lastEvent)res.write("data: "+JSON.stringify(lastEvent)+"\n\n");
     req.on("close",()=>clients.delete(res));return;
   }
   if(req.method==="POST" && req.url==="/event"){
