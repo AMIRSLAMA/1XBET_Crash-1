@@ -30,3 +30,14 @@ The script opens the configured Arabic Crash page, waits for the game iframe, an
 - The `L` field is stored as the game's round-related field; this script does not identify it as an account ID.
 - Captured past multipliers are historical observations, not a way to know or guarantee the next result.
 - Keep generated logs local and do not publish private account, session, or betting information.
+
+
+## Simple Windows event monitor
+
+After installing dependencies and confirming the Chrome path in `launch.js`, run:
+
+```bash
+node monitor.js
+```
+
+This opens a small local window with a danger circle, siren, and the word "اسحب". The display is triggered only after the capture script receives the game's actual `OnCrash` event. It is a post-event notification for testing the capture pipeline, **not** an advance warning or prediction of the next crash. Click the page once if the browser blocks audio until user interaction.
